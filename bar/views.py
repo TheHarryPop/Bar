@@ -32,16 +32,31 @@ class StockViewSet(ModelViewSet):
     # permission_classes = [IsAuthenticated]
     serializer_class = StockListSerializer
     detail_serializer_class = StockDetailSerializer
-    queryset = Stock.objects.all()
-
-
-class StockDetailViewSet(ModelViewSet):
-
-    # permission_classes = [IsAuthenticated]
-    serializer_class = StockDetailSerializer
 
     def get_queryset(self):
-        return Stock.objects.filter(comptoir=self.kwargs['pk'])
+        if self.action == 'retrieve':
+            print(Stock.objects.filter(comptoir=self.kwargs['pk']))
+            return Stock.objects.filter(comptoir=self.kwargs['pk'])
+        else:
+            return Stock.objects.all()
+
+
+
+# class StockViewSet(ModelViewSet):
+#
+#     # permission_classes = [IsAuthenticated]
+#     serializer_class = StockListSerializer
+#     detail_serializer_class = StockDetailSerializer
+#     queryset = Stock.objects.all()
+
+
+# class StockDetailViewSet(ModelViewSet):
+#
+#     # permission_classes = [IsAuthenticated]
+#     serializer_class = StockDetailSerializer
+#
+#     def get_queryset(self):
+#         return Stock.objects.filter(comptoir=self.kwargs['pk'])
 
 
 class RankingViewSet(ModelViewSet):

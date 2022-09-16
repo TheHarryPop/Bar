@@ -58,6 +58,9 @@ class ReferenceListSerializer(ModelSerializer):
 
 
 class MenuListSerializer(ModelSerializer):
+    # availability = serializers.ReadOnlyField(source="stock_reference__stock")
+    ref_list = Reference.objects.filter(stock_reference__stock=0)
+    ref = serializers.ReadOnlyField(source="reference.ref")
 
     class Meta:
         model = Reference
