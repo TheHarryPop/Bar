@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 
@@ -34,7 +34,7 @@ class BarListSerializer(ModelSerializer):
 
 
 class StockListSerializer(ModelSerializer):
-    reference = serializers.ReadOnlyField(source="reference.name")
+    reference = serializers.CharField(source="reference.name")
 
     class Meta:
         model = Stock
