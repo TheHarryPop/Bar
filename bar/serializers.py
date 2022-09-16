@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 
-from .models import User
+from .models import User, Bar, Stock, Reference, Order
 
 
 class RegisterSerializer(ModelSerializer):
@@ -21,7 +21,46 @@ class RegisterSerializer(ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.create(username=validated_data['username'])
+        user = User.objects.create(username=validated_data['username'], role="Barman")
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+class BarListSerializer(ModelSerializer):
+    class Meta:
+        model = Bar
+        fields = ['id', 'name']
+
+
+class StockListSerializer(ModelSerializer):
+    reference = serializers.ReadOnlyField(source="reference.name")
+
+    class Meta:
+        model = Stock
+        fields = ['reference', 'stock', 'comptoir']
+
+
+class StockDetailSerializer(ModelSerializer):
+    ref = serializers.ReadOnlyField(source="reference.ref")
+    name = serializers.ReadOnlyField(source="reference.name")
+    description = serializers.ReadOnlyField(source="reference.description")
+
+    class Meta:
+        model = Stock
+        fields = ['ref', 'name', 'description', 'stock']
+
+
+class ReferenceListSerializer(ModelSerializer):
+    class Meta:
+        model = Reference
+        fields = ['ref', 'name', 'description']
+
+
+class MenuListSerializer(ModelSerializer):
+
+    class Meta:
+        model = Reference
+        fields = ['ref', 'name', 'description', 'availability']
+
+        # print(fields[3].value)
