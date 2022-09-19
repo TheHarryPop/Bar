@@ -66,7 +66,7 @@ class StockViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         data_to_change = {'stock': request.data.get('stock')}
         try:
-            stock = Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
+            stock = Stock.objects.get(reference=request.data['reference'], comptoir=self.kwargs['comptoir'])
             serializer = self.serializer_class(stock, data=data_to_change, partial=True)
             if serializer.is_valid():
                 self.perform_update(serializer)

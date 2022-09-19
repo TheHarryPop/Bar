@@ -63,12 +63,18 @@ class ReferenceListSerializer(ModelSerializer):
 
 
 class MenuListSerializer(ModelSerializer):
-    # availability = serializers.ReadOnlyField(source="stock_reference__stock")
-    ref_list = Reference.objects.filter(stock_reference__stock=0)
-    ref = serializers.ReadOnlyField(source="reference.ref")
+    availability = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_availability(ref):
+        ref_list = Reference.objects.filter(stock_reference__stock=0)
+
+        for ref_ in ref_list:
+            if ref.name == ref_.name:
+                ref.availability = 'outofstock'
+
+        return ref.availability
 
     class Meta:
         model = Reference
         fields = ['ref', 'name', 'description', 'availability']
-
-        # print(fields[3].value)
