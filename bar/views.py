@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.generics import CreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -52,7 +53,8 @@ class StockViewSet(ModelViewSet):
         try:
             Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
             return Response('La référence existe déjà pour ce comptoir')
-        except:
+
+        except ObjectDoesNotExist:
             serializer.is_valid()
             serializer.save()
             return Response(serializer.data)
@@ -63,11 +65,14 @@ class StockViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         data_to_change = {'stock': request.data.get('stock')}
-        stock = Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
-        serializer = self.serializer_class(stock, data=data_to_change, partial=True)
-        if serializer.is_valid():
-            self.perform_update(serializer)
-        return Response(serializer.data)
+        try:
+            stock = Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
+            serializer = self.serializer_class(stock, data=data_to_change, partial=True)
+            if serializer.is_valid():
+                self.perform_update(serializer)
+            return Response(serializer.data)
+        except ObjectDoesNotExist:
+            return Response('Merci de créer la référence pour ce comptoir avant de mettre à jour les stocks')
 
 
 class RankingViewSet(ModelViewSet):
