@@ -1,6 +1,7 @@
 from rest_framework.generics import CreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .models import User, Bar, Stock, Reference
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
@@ -28,35 +29,45 @@ class ReferenceViewSet(ModelViewSet):
 
 
 class StockViewSet(ModelViewSet):
-
     # permission_classes = [IsAuthenticated]
     serializer_class = StockListSerializer
     detail_serializer_class = StockDetailSerializer
+    lookup_field = 'comptoir'
 
     def get_queryset(self):
-        if self.action == 'retrieve':
-            print(Stock.objects.filter(comptoir=self.kwargs['pk']))
-            return Stock.objects.filter(comptoir=self.kwargs['pk'])
+        if 'comptoir' in self.kwargs:
+            return Stock.objects.filter(comptoir=self.kwargs['comptoir'])
         else:
             return Stock.objects.all()
 
+    def get_serializer(self, *args, **kwargs):
+        if self.action == 'retrieve':
+            serializer_class = self.detail_serializer_class
+            return serializer_class(*args, **kwargs)
+        serializer_class = self.serializer_class
+        return serializer_class(*args, **kwargs)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        try:
+            Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
+            return Response('La référence existe déjà pour ce comptoir')
+        except:
+            serializer.is_valid()
+            serializer.save()
+            return Response(serializer.data)
 
-# class StockViewSet(ModelViewSet):
-#
-#     # permission_classes = [IsAuthenticated]
-#     serializer_class = StockListSerializer
-#     detail_serializer_class = StockDetailSerializer
-#     queryset = Stock.objects.all()
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(data=serializer.data)
 
-
-# class StockDetailViewSet(ModelViewSet):
-#
-#     # permission_classes = [IsAuthenticated]
-#     serializer_class = StockDetailSerializer
-#
-#     def get_queryset(self):
-#         return Stock.objects.filter(comptoir=self.kwargs['pk'])
+    def update(self, request, *args, **kwargs):
+        data_to_change = {'stock': request.data.get('stock')}
+        stock = Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
+        serializer = self.serializer_class(stock, data=data_to_change, partial=True)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 class RankingViewSet(ModelViewSet):

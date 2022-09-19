@@ -21,6 +21,4 @@ urlpatterns = [
     path('api/signup/', RegisterView.as_view(), name='signup'),
     path('api/login/', TokenObtainPairView.as_view(), name='login'),
     path('api/', include(router.urls)),
-    # path('api/stock/', StockViewSet.as_view({'get': 'list', 'post': 'create'}), name='stock'),
-    # path('api/stock/<pk>/', StockDetailViewSet.as_view({'get': 'list'}), name='stock_detail')
 ]

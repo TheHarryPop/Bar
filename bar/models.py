@@ -22,7 +22,7 @@ class Bar(models.Model):
     name = models.CharField(max_length=150, null=False)
 
     def __str__(self):
-        return f"Name: {self.name}"
+        return self.name
 
 
 class Reference(models.Model):
@@ -32,7 +32,7 @@ class Reference(models.Model):
     availability = 'available'
 
     def __str__(self):
-        return f"Name: {self.name}"
+        return self.name
 
 
 class Stock(models.Model):
@@ -40,8 +40,8 @@ class Stock(models.Model):
     reference = models.ForeignKey(to=Reference, on_delete=models.CASCADE, null=True, related_name='stock_reference')
     stock = models.IntegerField(null=True)
 
-    class Meta:
-        unique_together = ('comptoir', 'reference')
+    # class Meta:
+    #     unique_together = ('comptoir', 'reference')
 
 
 class Order(models.Model):

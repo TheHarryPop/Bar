@@ -34,15 +34,20 @@ class BarListSerializer(ModelSerializer):
 
 
 class StockListSerializer(ModelSerializer):
-    reference = serializers.CharField(source="reference.name")
+    # reference = serializers.CharField(source="reference.name")
 
     class Meta:
         model = Stock
         fields = ['reference', 'stock', 'comptoir']
 
+    def update(self, instance, validated_data):
+        instance.stock = validated_data.get('stock', instance.stock)
+        instance.save()
+        return instance
+
 
 class StockDetailSerializer(ModelSerializer):
-    ref = serializers.ReadOnlyField(source="reference.ref")
+    ref = serializers.CharField(source="reference.ref")
     name = serializers.ReadOnlyField(source="reference.name")
     description = serializers.ReadOnlyField(source="reference.description")
 
