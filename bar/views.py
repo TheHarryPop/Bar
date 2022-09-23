@@ -4,9 +4,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import User, Bar, Stock, Reference
+from .models import User, Bar, Stock, Reference, Order
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
-    ReferenceListSerializer, MenuListSerializer
+    ReferenceListSerializer, MenuListSerializer, OrderSerializer, OrderItemsSerializer
 
 
 class RegisterView(CreateAPIView):
@@ -90,3 +90,27 @@ class MenuViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Reference.objects.all()
+
+
+class OrderViewSet(ModelViewSet):
+
+    permission_classes = []
+    serializer_class = OrderSerializer
+    post_serializer_class = OrderItemsSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(comptoir=self.kwargs['comptoir'])
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data={'comptoir': self.kwargs['comptoir']})
+        serializer.is_valid()
+        order = serializer.save()
+
+        for item in request.data['items']:
+            ref = Reference.objects.get(ref=item['ref'])
+            serializer_item = self.post_serializer_class(data=item)
+            serializer_item.is_valid()
+            serializer_item.save(item=ref, order=order)
+
+        return Response(serializer.data)
+

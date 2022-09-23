@@ -2,8 +2,10 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
+from operator import countOf
+from collections import OrderedDict
 
-from .models import User, Bar, Stock, Reference, Order
+from .models import User, Bar, Stock, Reference, Order, OrderItems
 
 
 class RegisterSerializer(ModelSerializer):
@@ -67,14 +69,29 @@ class MenuListSerializer(ModelSerializer):
 
     @staticmethod
     def get_availability(ref):
-        ref_list = Reference.objects.filter(stock_reference__stock=0)
 
-        for ref_ in ref_list:
-            if ref.name == ref_.name:
-                ref.availability = 'outofstock'
+        refs_stock = Stock.objects.filter(reference=ref)
+        refs_list_outofstock = Stock.objects.filter(reference=ref, stock=0)
+
+        if len(refs_stock) == len(refs_list_outofstock):
+            ref.availability = 'outofstock'
 
         return ref.availability
 
     class Meta:
         model = Reference
         fields = ['ref', 'name', 'description', 'availability']
+
+
+class OrderItemsSerializer(ModelSerializer):
+
+    class Meta:
+        model = OrderItems
+        fields = ['item']
+
+
+class OrderSerializer(ModelSerializer):
+
+    class Meta:
+        model = Order
+        fields = ['comptoir']
