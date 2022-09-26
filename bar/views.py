@@ -3,10 +3,14 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_multiple_model.views import FlatMultipleModelAPIView
+from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
+from collections import OrderedDict
 
 from .models import User, Bar, Stock, Reference, Order
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
-    ReferenceListSerializer, MenuListSerializer, OrderSerializer, OrderItemsSerializer
+    ReferenceListSerializer, MenuListSerializer, OrderSerializer, OrderItemsSerializer, RankingAllSerializer, \
+    RankingMissSerializer
 
 
 class RegisterView(CreateAPIView):
@@ -75,12 +79,24 @@ class StockViewSet(ModelViewSet):
             return Response('Merci de créer la référence pour ce comptoir avant de mettre à jour les stocks')
 
 
-class RankingViewSet(ModelViewSet):
+class FormatResponse(MultipleModelLimitOffsetPagination):
 
-    pass
+    def format_response(self, data):
+        return data
+
+
+class RankingViewSet(FlatMultipleModelAPIView):
 
     # permission_classes = []
-    # serializer_class =
+    pagination_class = FormatResponse
+    add_model_type = None
+
+    def get_querylist(self):
+        query = [Bar.objects.all()[0]]
+        querylist = [{'queryset': query, 'serializer_class': RankingAllSerializer}, {'queryset': query,
+                                                                                     'serializer_class':
+                                                                                         RankingMissSerializer}]
+        return querylist
 
 
 class MenuViewSet(ModelViewSet):
@@ -111,6 +127,9 @@ class OrderViewSet(ModelViewSet):
             serializer_item = self.post_serializer_class(data=item)
             serializer_item.is_valid()
             serializer_item.save(item=ref, order=order)
+            stock = Stock.objects.get(reference=ref, comptoir=self.kwargs['comptoir'])
+            stock.stock -= 1
+            stock.save()
 
         return Response(serializer.data)
 

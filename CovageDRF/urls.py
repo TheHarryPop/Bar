@@ -7,14 +7,10 @@ from bar.views import RegisterView, BarViewSet, StockViewSet, ReferenceViewSet, 
     OrderViewSet
 
 router = routers.SimpleRouter()
-router.register('bars', BarViewSet, basename='bars')
 router.register('stock', StockViewSet, basename='stock')
 router.register('references', ReferenceViewSet, basename='references')
 router.register('menu', MenuViewSet, basename='menu')
-# router.register('order', OrderViewSet, basename='order')
 
-bars_router = routers.NestedSimpleRouter(router, 'bars', lookup='bar')
-bars_router.register('ranking', RankingViewSet, basename='ranking')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,5 +18,8 @@ urlpatterns = [
     path('api/signup/', RegisterView.as_view(), name='signup'),
     path('api/login/', TokenObtainPairView.as_view(), name='login'),
     path('api/', include(router.urls)),
-    path('api/order/<int:comptoir>/', OrderViewSet.as_view({'get': 'list', 'post': 'create'}), name='order')
+    path('api/bars/', BarViewSet.as_view({'get': 'list', 'post': 'create'}), name='bars'),
+    path('api/order/<int:comptoir>/', OrderViewSet.as_view({'get': 'list', 'post': 'create'}), name='order'),
+    path('api/bars/ranking/', RankingViewSet.as_view(), name='ranking'),
+    # path('api/bars/ranking/', RankingViewSet.as_view({'get': 'list'}), name='ranking')
 ]

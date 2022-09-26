@@ -2,8 +2,6 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-from operator import countOf
-from collections import OrderedDict
 
 from .models import User, Bar, Stock, Reference, Order, OrderItems
 
@@ -91,7 +89,93 @@ class OrderItemsSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
+    items = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_items(order):
+
+        list_orderitems = OrderItems.objects.filter(order=order)
+
+        list_items = []
+
+        for orderitem in list_orderitems:
+            item = Reference.objects.get(name=orderitem.item)
+            ref = item.ref
+            name = item.name
+            description = item.description
+            list_items.append({"ref": ref,
+                               "name": name,
+                               "description": description
+                               })
+        return list_items
 
     class Meta:
         model = Order
-        fields = ['comptoir']
+        fields = ['id', 'items']
+
+
+class RankingAllSerializer(ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    bars = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_name(bar):
+        return "all_stock"
+
+    @staticmethod
+    def get_description(bar):
+        return "Liste des comptoirs qui ont toutes les références en stock"
+
+    @staticmethod
+    def get_bars(bar):
+        bars = Bar.objects.all()
+        references = Reference.objects.all()
+        all_stock = []
+        for bar in bars:
+            references_available = []
+            for reference in references:
+                stock = Stock.objects.get(comptoir=bar, reference=reference)
+                if stock.stock != 0:
+                    references_available.append(reference)
+            if len(references_available) == len(references):
+                all_stock.append(bar.id)
+        return all_stock
+
+    class Meta:
+        model = Bar
+        fields = ['name', 'description', 'bars']
+
+
+class RankingMissSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    bars = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_name(bar):
+        return "miss_at_least_one"
+
+    @staticmethod
+    def get_description(bar):
+        return "Liste de comptoirs qui ont au moins une référence épuisée"
+
+    @staticmethod
+    def get_bars(bar):
+        miss_at_least_one = []
+        bars = Bar.objects.all()
+        references = Reference.objects.all()
+        for bar in bars:
+            references_out = []
+            for reference in references:
+                stock = Stock.objects.get(comptoir=bar, reference=reference)
+                if stock.stock == 0:
+                    references_out.append(reference)
+            if references_out:
+                miss_at_least_one.append(bar.id)
+        return miss_at_least_one
+
+    class Meta:
+        model = Bar
+        fields = ['name', 'description', 'bars']

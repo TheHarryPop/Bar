@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'bar',
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_multiple_model',
 ]
 
 MIDDLEWARE = [

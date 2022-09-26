@@ -48,11 +48,3 @@ class Order(models.Model):
 class OrderItems(models.Model):
     item = models.ForeignKey(to=Reference, on_delete=models.CASCADE, null=True, related_name='orderitems_reference')
     order = models.ForeignKey(to=Order, on_delete=models.CASCADE, null=True, related_name='orderitems_order')
-
-
-
-
-
-# class Order(models.Model):
-#     comptoir = models.ForeignKey(to=Bar, on_delete=models.CASCADE, null=True, related_name='order_comptoir')
-#     order_items = models.ManyToManyField(to=Reference, blank=True, related_name='order_items')
