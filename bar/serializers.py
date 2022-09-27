@@ -179,3 +179,38 @@ class RankingMissSerializer(ModelSerializer):
     class Meta:
         model = Bar
         fields = ['name', 'description', 'bars']
+
+
+class RankingBestSerializer(ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    bars = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_name(bar):
+        return "most_pints"
+
+    @staticmethod
+    def get_description(bar):
+        return "Liste le comptoir avec le plus de pintes commandées"
+
+    @staticmethod
+    def get_bars(bar):
+        bars = Bar.objects.all()
+        best_nb_pints = 0
+        best_bar = ""
+        for bar in bars:
+            nb_pints = 0
+            orders = Order.objects.filter(comptoir=bar)
+            for order in orders:
+                order_items = OrderItems.objects.filter(order=order)
+                nb_pints += len(order_items)
+            if nb_pints > best_nb_pints:
+                best_nb_pints = nb_pints
+                best_bar = bar.id
+        return [best_bar]
+
+    class Meta:
+        model = Bar
+        fields = ['name', 'description', 'bars']

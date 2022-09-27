@@ -10,7 +10,7 @@ from collections import OrderedDict
 from .models import User, Bar, Stock, Reference, Order
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
     ReferenceListSerializer, MenuListSerializer, OrderSerializer, OrderItemsSerializer, RankingAllSerializer, \
-    RankingMissSerializer
+    RankingMissSerializer, RankingBestSerializer
 
 
 class RegisterView(CreateAPIView):
@@ -21,14 +21,14 @@ class RegisterView(CreateAPIView):
 
 class BarViewSet(ModelViewSet):
 
-    permission_classes = []
+    # permission_classes = [IsAuthenticated]
     serializer_class = BarListSerializer
     queryset = Bar.objects.all()
 
 
 class ReferenceViewSet(ModelViewSet):
 
-    permission_classes = []
+    # permission_classes = [IsAuthenticated]
     serializer_class = ReferenceListSerializer
     queryset = Reference.objects.all()
 
@@ -87,15 +87,19 @@ class FormatResponse(MultipleModelLimitOffsetPagination):
 
 class RankingViewSet(FlatMultipleModelAPIView):
 
-    # permission_classes = []
+    # permission_classes = [IsAuthenticated]
     pagination_class = FormatResponse
     add_model_type = None
 
     def get_querylist(self):
         query = [Bar.objects.all()[0]]
-        querylist = [{'queryset': query, 'serializer_class': RankingAllSerializer}, {'queryset': query,
-                                                                                     'serializer_class':
-                                                                                         RankingMissSerializer}]
+        if 'orders' in self.request.get_full_path():
+            querylist = [{'queryset': query, 'serializer_class': RankingBestSerializer}]
+
+        else:
+            querylist = [{'queryset': query, 'serializer_class': RankingAllSerializer}, {'queryset': query,
+                                                                                         'serializer_class':
+                                                                                             RankingMissSerializer}]
         return querylist
 
 
@@ -115,21 +119,21 @@ class OrderViewSet(ModelViewSet):
     post_serializer_class = OrderItemsSerializer
 
     def get_queryset(self):
-        return Order.objects.filter(comptoir=self.kwargs['comptoir'])
+        return Order.objects.all()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data={'comptoir': self.kwargs['comptoir']})
+        serializer = self.serializer_class(data={'comptoir': self.kwargs['pk']})
+        bar = Bar.objects.get(id=self.kwargs['pk'])
         serializer.is_valid()
-        order = serializer.save()
+        order = serializer.save(comptoir=bar)
 
         for item in request.data['items']:
             ref = Reference.objects.get(ref=item['ref'])
             serializer_item = self.post_serializer_class(data=item)
             serializer_item.is_valid()
             serializer_item.save(item=ref, order=order)
-            stock = Stock.objects.get(reference=ref, comptoir=self.kwargs['comptoir'])
+            stock = Stock.objects.get(reference=ref, comptoir=self.kwargs['pk'])
             stock.stock -= 1
             stock.save()
 
         return Response(serializer.data)
-
