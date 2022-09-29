@@ -34,7 +34,7 @@ class ReferenceViewSet(ModelViewSet):
 
 
 class StockViewSet(ModelViewSet):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = StockListSerializer
     detail_serializer_class = StockDetailSerializer
     queryset = Stock.objects.all()
@@ -46,8 +46,9 @@ class StockViewSet(ModelViewSet):
             return Response('La référence existe déjà pour ce comptoir')
 
         except ObjectDoesNotExist:
+            bar = Bar.objects.get(id=self.kwargs['pk'])
             serializer.is_valid()
-            serializer.save()
+            serializer.save(comptoir=bar)
             return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -80,7 +81,7 @@ class FormatResponse(MultipleModelLimitOffsetPagination):
 
 class RankingViewSet(FlatMultipleModelAPIView):
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = FormatResponse
     add_model_type = None
 
@@ -88,11 +89,9 @@ class RankingViewSet(FlatMultipleModelAPIView):
         query = [Bar.objects.all()[0]]
         if 'orders' in self.request.get_full_path():
             querylist = [{'queryset': query, 'serializer_class': RankingBestSerializer}]
-
         else:
-            querylist = [{'queryset': query, 'serializer_class': RankingAllSerializer}, {'queryset': query,
-                                                                                         'serializer_class':
-                                                                                             RankingMissSerializer}]
+            querylist = [{'queryset': query, 'serializer_class': RankingAllSerializer},
+                         {'queryset': query, 'serializer_class': RankingMissSerializer}]
         return querylist
 
 

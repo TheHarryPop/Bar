@@ -2,6 +2,7 @@ import pytest
 
 from rest_framework.test import APIClient
 from django.urls import reverse_lazy
+from bar.models import Stock
 
 
 url = reverse_lazy('References')
@@ -16,7 +17,7 @@ def test_retrieve_ref_auth(api_client_user, ref):
 
 
 @pytest.mark.django_db
-def test_retreive_ref_no_auth(ref):
+def test_retreive_ref_no_auth():
     client = APIClient()
     response = client.get(url)
     assert response.status_code == 401
@@ -66,11 +67,10 @@ def test_put_ref_user(api_client_user, ref):
 
 
 @pytest.mark.django_db
-def test_delete_ref_in_stock(api_client_staff_user, ref, bar, stock):
+def test_delete_ref_in_stock(api_client_staff_user, stock):
     client = api_client_staff_user
-    response_stock = client.get(reverse_lazy('St'))
+    nbr_stock_before_del = Stock.objects.count()
     response = client.delete(reverse_lazy('Reference Details', kwargs={'pk': 1}))
-    print(response)
-    print(response.data)
-    assert response.status_code == 200
-    assert 'Noël' in response.data['name']
+    nbr_stock_after_del = Stock.objects.count()
+    assert response.status_code == 204
+    assert (nbr_stock_before_del == nbr_stock_after_del + 1)

@@ -14,7 +14,7 @@ urlpatterns = [
     path('api/bar/<int:pk>/', BarViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}),
          name='Bar Details'),
     path('api/references/', ReferenceViewSet.as_view({'get': 'list', 'post': 'create'}), name='References'),
-    path('api/references/<int:pk>/', ReferenceViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete':
+    path('api/reference/<int:pk>/', ReferenceViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete':
          'destroy'}), name='Reference Details'),
     path('api/stock/<int:pk>/', StockViewSet.as_view({'get': 'retrieve', 'post': 'create', 'put': 'update',
                                                       'delete': 'destroy'}), name='Stock Details'),
@@ -23,5 +23,5 @@ urlpatterns = [
     path('api/orders/', OrderViewSet.as_view({'get': 'list'}), name='Orders'),
     path('api/order/<int:pk>/', OrderViewSet.as_view({'get': 'retrieve', 'post': 'create'}), name='Order Details'),
     path('api/bars/ranking/', RankingViewSet.as_view(), name='Ranking'),
-    path('api/orders/bars/ranking/', RankingViewSet.as_view(), name='Ranking'),
+    path('api/orders/bars/ranking/', RankingViewSet.as_view(), name='Ranking Orders'),
 ]
