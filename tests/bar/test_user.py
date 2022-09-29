@@ -26,7 +26,5 @@ def test_login_user(user):
 
     response = client.post(url, data=payload)
 
-    data = response.data
-
-    assert 'access' in data
+    assert 'access' in response.data
     assert response.status_code == 200

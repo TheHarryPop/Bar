@@ -34,7 +34,6 @@ class BarListSerializer(ModelSerializer):
 
 
 class StockListSerializer(ModelSerializer):
-    # reference = serializers.CharField(source="reference.name")
 
     class Meta:
         model = Stock

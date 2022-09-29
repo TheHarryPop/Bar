@@ -5,12 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_multiple_model.views import FlatMultipleModelAPIView
 from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
-from collections import OrderedDict
 
 from .models import User, Bar, Stock, Reference, Order
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
     ReferenceListSerializer, MenuListSerializer, OrderSerializer, OrderItemsSerializer, RankingAllSerializer, \
     RankingMissSerializer, RankingBestSerializer
+from .permissions import BarPermissions, ReferencesPermissions
 
 
 class RegisterView(CreateAPIView):
@@ -21,14 +21,14 @@ class RegisterView(CreateAPIView):
 
 class BarViewSet(ModelViewSet):
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, BarPermissions]
     serializer_class = BarListSerializer
     queryset = Bar.objects.all()
 
 
 class ReferenceViewSet(ModelViewSet):
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ReferencesPermissions]
     serializer_class = ReferenceListSerializer
     queryset = Reference.objects.all()
 
@@ -37,25 +37,12 @@ class StockViewSet(ModelViewSet):
     # permission_classes = [IsAuthenticated]
     serializer_class = StockListSerializer
     detail_serializer_class = StockDetailSerializer
-    lookup_field = 'comptoir'
-
-    def get_queryset(self):
-        if 'comptoir' in self.kwargs:
-            return Stock.objects.filter(comptoir=self.kwargs['comptoir'])
-        else:
-            return Stock.objects.all()
-
-    def get_serializer(self, *args, **kwargs):
-        if self.action == 'retrieve':
-            serializer_class = self.detail_serializer_class
-            return serializer_class(*args, **kwargs)
-        serializer_class = self.serializer_class
-        return serializer_class(*args, **kwargs)
+    queryset = Stock.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         try:
-            Stock.objects.get(reference=request.data['reference'], comptoir=request.data['comptoir'])
+            Stock.objects.get(reference=request.data['reference'], comptoir=self.kwargs['pk'])
             return Response('La référence existe déjà pour ce comptoir')
 
         except ObjectDoesNotExist:
@@ -64,19 +51,25 @@ class StockViewSet(ModelViewSet):
             return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        return Response(data=serializer.data)
+        instance = Stock.objects.filter(comptoir=self.kwargs['pk'])
+        serializer = self.get_serializer(instance, many=True)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         data_to_change = {'stock': request.data.get('stock')}
         try:
-            stock = Stock.objects.get(reference=request.data['reference'], comptoir=self.kwargs['comptoir'])
+            stock = Stock.objects.get(reference=request.data['reference'], comptoir=self.kwargs['pk'])
             serializer = self.serializer_class(stock, data=data_to_change, partial=True)
             if serializer.is_valid():
                 self.perform_update(serializer)
             return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response('Merci de créer la référence pour ce comptoir avant de mettre à jour les stocks')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return self.detail_serializer_class
+        return super().get_serializer_class()
 
 
 class FormatResponse(MultipleModelLimitOffsetPagination):
