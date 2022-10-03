@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
+from django_filters import rest_framework as filters
 
 from .models import User, Bar, Stock, Reference, Order, OrderItems
 
@@ -66,11 +67,27 @@ class MenuListSerializer(ModelSerializer):
 
     @staticmethod
     def get_availability(ref):
-
         refs_stock = Stock.objects.filter(reference=ref)
         refs_list_outofstock = Stock.objects.filter(reference=ref, stock=0)
 
         if len(refs_stock) == len(refs_list_outofstock):
+            ref.availability = 'outofstock'
+
+        return ref.availability
+
+    class Meta:
+        model = Reference
+        fields = ['ref', 'name', 'description', 'availability']
+
+
+class MenuDetailSerializer(ModelSerializer):
+    availability = serializers.SerializerMethodField()
+
+    def get_availability(self, ref):
+
+        stock = Stock.objects.get(comptoir=self.context['bar'], reference=ref)
+
+        if stock.stock == 0:
             ref.availability = 'outofstock'
 
         return ref.availability

@@ -23,6 +23,10 @@ class ReferencesPermissions(BasePermission):
         return request.user.is_staff
 
 
-# class OrderPermissions(BasePermission):
-#
-#     def has
+class OrderPermissions(BasePermission):
+
+    def has_permission(self, request, view):
+        if request.method == 'POST':
+            return not request.user.is_authenticated
+        if request.method == 'GET':
+            return request.user.is_authenticated

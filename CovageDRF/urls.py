@@ -19,7 +19,7 @@ urlpatterns = [
     path('api/stock/<int:pk>/', StockViewSet.as_view({'get': 'retrieve', 'post': 'create', 'put': 'update',
                                                       'delete': 'destroy'}), name='Stock Details'),
     path('api/menu/', MenuViewSet.as_view({'get': 'list'}, name='Menu')),
-    # path('api/menu/<int: pk>/', MenuViewSet.as_view({'get': 'retrieve'}, name='Bar Menu')),
+    path('api/menu/<int:pk>/', MenuViewSet.as_view({'get': 'retrieve'}, name='Bar Menu')),
     path('api/orders/', OrderViewSet.as_view({'get': 'list'}), name='Orders'),
     path('api/order/<int:pk>/', OrderViewSet.as_view({'get': 'retrieve', 'post': 'create'}), name='Order Details'),
     path('api/bars/ranking/', RankingViewSet.as_view(), name='Ranking'),
