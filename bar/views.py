@@ -1,10 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.generics import CreateAPIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from drf_multiple_model.views import FlatMultipleModelAPIView
 from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
+from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 
 from .models import User, Bar, Stock, Reference, Order
@@ -53,7 +54,7 @@ class StockViewSet(ModelViewSet):
             return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = Stock.objects.filter(comptoir=self.kwargs['pk'])
+        instance = get_object_or_404(Stock, comptoir=self.kwargs['pk'])
         serializer = self.get_serializer(instance, many=True)
         return Response(serializer.data)
 
@@ -98,7 +99,7 @@ class RankingViewSet(FlatMultipleModelAPIView):
 
 class MenuViewSet(ModelViewSet):
 
-    permission_classes = []
+    permission_classes = [AllowAny]
     serializer_class = MenuListSerializer
     detail_serializer_class = MenuDetailSerializer
     queryset = Reference.objects.all()
@@ -107,7 +108,7 @@ class MenuViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = Reference.objects.filter(stock_reference__comptoir=self.kwargs['pk'])
-        bar = Bar.objects.get(id=kwargs['pk'])
+        bar = get_object_or_404(Bar, id=kwargs['pk'])
         serializer = MenuDetailSerializer(instance, context={'bar': bar}, many=True)
         return Response(serializer.data)
 
