@@ -9,6 +9,22 @@ url_2 = reverse_lazy('Order Details', kwargs={'pk': 1})
 
 
 @pytest.mark.django_db
+def test_get_orders_auth(api_client_user,order_items):
+    client = api_client_user
+    response = client.get(url_1)
+    assert response.status_code == 200
+    assert response.data['results'][0]['items'][0]['name'] == 'Leffe blonde'
+
+
+@pytest.mark.django_db
+def test_get_orders_no_auth(order_items):
+    client = APIClient()
+    response = client.get(url_1)
+    assert response.status_code == 401
+    assert "Informations d'authentification non fournies." in response.data['detail']
+
+
+@pytest.mark.django_db
 def test_retrieve_order_details_auth(api_client_user, order_items):
     client = api_client_user
     response = client.get(url_2)
@@ -17,7 +33,7 @@ def test_retrieve_order_details_auth(api_client_user, order_items):
 
 
 @pytest.mark.django_db
-def test_retreive_order_details_no_auth(order_items):
+def test_retrieve_order_details_no_auth(order_items):
     client = APIClient()
     response = client.get(url_2)
     assert response.status_code == 401

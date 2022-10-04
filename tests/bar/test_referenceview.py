@@ -10,7 +10,7 @@ url_2 = reverse_lazy('Reference Details', kwargs={'pk': 1})
 
 
 @pytest.mark.django_db
-def test_retrieve_ref_auth(api_client_user, ref):
+def test_get_ref_auth(api_client_user, ref):
     client = api_client_user
     response = client.get(url_1)
     assert response.status_code == 200
@@ -18,7 +18,7 @@ def test_retrieve_ref_auth(api_client_user, ref):
 
 
 @pytest.mark.django_db
-def test_retreive_ref_no_auth():
+def test_get_ref_no_auth():
     client = APIClient()
     response = client.get(url_1)
     assert response.status_code == 401

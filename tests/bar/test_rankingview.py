@@ -9,7 +9,7 @@ url_2 = reverse_lazy('Ranking Orders')
 
 
 @pytest.mark.django_db
-def test_retrieve_ranking_auth(api_client_user, stock):
+def test_get_ranking_auth(api_client_user, stock):
     client = api_client_user
     response = client.get(url_1)
     assert response.status_code == 200
@@ -18,7 +18,7 @@ def test_retrieve_ranking_auth(api_client_user, stock):
 
 
 @pytest.mark.django_db
-def test_retreive_ranking_no_auth():
+def test_get_ranking_no_auth():
     client = APIClient()
     response = client.get(url_1)
     assert response.status_code == 401
@@ -26,7 +26,7 @@ def test_retreive_ranking_no_auth():
 
 
 @pytest.mark.django_db
-def test_retrieve_ranking_orders_auth(api_client_user, order_items):
+def test_get_ranking_orders_auth(api_client_user, order_items):
     client = api_client_user
     response = client.get(url_2)
     assert response.status_code == 200
@@ -35,7 +35,7 @@ def test_retrieve_ranking_orders_auth(api_client_user, order_items):
 
 
 @pytest.mark.django_db
-def test_retreive_ranking_orders_no_auth():
+def test_get_ranking_orders_no_auth():
     client = APIClient()
     response = client.get(url_2)
     assert response.status_code == 401

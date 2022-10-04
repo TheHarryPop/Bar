@@ -1,12 +1,14 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from rest_framework.generics import CreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from drf_multiple_model.views import FlatMultipleModelAPIView
 from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
-from django.shortcuts import get_object_or_404
-from django_filters import rest_framework as filters
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+
 
 from .models import User, Bar, Stock, Reference, Order
 from .serializers import RegisterSerializer, BarListSerializer, StockDetailSerializer, StockListSerializer, \
@@ -26,6 +28,9 @@ class BarViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, BarPermissions]
     serializer_class = BarListSerializer
     queryset = Bar.objects.all()
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ('name',)
+    ordering_fields = ('id', 'name')
 
 
 class ReferenceViewSet(ModelViewSet):
@@ -33,6 +38,9 @@ class ReferenceViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ReferencesPermissions]
     serializer_class = ReferenceListSerializer
     queryset = Reference.objects.all()
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ('ref', 'name', 'description')
+    ordering_fields = ('ref', 'name', 'description')
 
 
 class StockViewSet(ModelViewSet):
@@ -40,6 +48,9 @@ class StockViewSet(ModelViewSet):
     serializer_class = StockListSerializer
     detail_serializer_class = StockDetailSerializer
     queryset = Stock.objects.all()
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ('reference', 'stock')
+    ordering_fields = ('reference', 'stock')
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -54,7 +65,10 @@ class StockViewSet(ModelViewSet):
             return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = get_object_or_404(Stock, comptoir=self.kwargs['pk'])
+        try:
+            instance = get_object_or_404(Stock, comptoir=self.kwargs['pk'])
+        except MultipleObjectsReturned:
+            instance = get_list_or_404(Stock, comptoir=self.kwargs['pk'])
         serializer = self.get_serializer(instance, many=True)
         return Response(serializer.data)
 
@@ -103,8 +117,9 @@ class MenuViewSet(ModelViewSet):
     serializer_class = MenuListSerializer
     detail_serializer_class = MenuDetailSerializer
     queryset = Reference.objects.all()
-    # filter_backends = (filters.DjangoFilterBackend,)
-    # filter_fields = ('availability', )
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_fields = ('ref', 'name', 'description')
+    ordering_fields = ('ref', 'name', 'description')
 
     def retrieve(self, request, *args, **kwargs):
         instance = Reference.objects.filter(stock_reference__comptoir=self.kwargs['pk'])
